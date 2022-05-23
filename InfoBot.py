@@ -25,6 +25,7 @@ weekday = {1: "понедельник", 2: 'вторник', 3: 'среда', 4:
 last_message = ""
 ras = ""
 region_corona = {}
+allSheet = []
 
 # Время
 today = datetime.date.today().strftime("%a").lower()
@@ -190,25 +191,22 @@ soup = BeautifulSoup(page.text, "html.parser")
 result = soup.find('div', {'class': 'rasspisanie'}).find(string="Институт информационных технологий").find_parent(
     'div').find_parent('div').findAll(href=re.compile('https://'))[:3]
 
-result1 = result[0].get('href')
-result2 = result[1].get('href')
-result3 = result[2].get('href')
-f1 = open("file" + str(1) + ".xlsx", "wb")
-f2 = open("file" + str(2) + ".xlsx", "wb")
-f3 = open("file" + str(3) + ".xlsx", "wb")
-resp1 = requests.get(result1)
-resp2 = requests.get(result2)
-resp3 = requests.get(result3)
-f1.write(resp1.content)
-f2.write(resp2.content)
-f3.write(resp3.content)
-book1 = openpyxl.load_workbook("file" + str(1) + ".xlsx")
-book2 = openpyxl.load_workbook("file" + str(2) + ".xlsx")
-book3 = openpyxl.load_workbook("file" + str(3) + ".xlsx")
-sheet1 = book1.active
-sheet2 = book2.active
-sheet3 = book3.active
-allSheet = [sheet1, sheet2, sheet3]
+for i in range(len(result)):
+    res = result[i].get('href')
+    f = open("file" + str(i + 1) + ".xlsx", "wb")
+    resp = requests.get(res)
+    f.write(resp.content)
+    book = openpyxl.load_workbook("file" + str(i + 1) + ".xlsx")
+    sheet = book.active
+    allSheet.append(sheet)
+
+# Погода
+weather_api1 = requests.get(
+    "http://api.openweathermap.org/data/2.5/weather?q=moscow&appid=cedff4064e83e3f289965131db177a37&units=metric&lang=ru")
+weather1 = weather_api1.json()
+weather_api2 = requests.get(
+    "http://api.openweathermap.org/data/2.5/forecast?lat=55.7522&lon=37.6156&appid=cedff4064e83e3f289965131db177a37&units=metric&lang=ru")
+weather2 = weather_api2.json()
 
 
 # Расписание группы
@@ -242,15 +240,21 @@ def groupTimetable(date):
                         continue
                     table += str(num) + ") "
                     num += 1
-                    for cell in row:
-                        if cell.value is None or cell.value.upper() == cell.value.lower():
+                    for c in range(len(row)):
+                        if row[c].value is None or row[c].value.upper() == row[c].value.lower():
                             table += '-\n'
                             break
                         else:
-                            if row[-1] != cell:
-                                table += cell.value + ", "
+                            if row[-1] != row[c]:
+                                if "\n" in row[c].value and c == 0:
+                                    for b in range(len(row[c].value.split("\n"))):
+                                        table += row[c].value.split("\n")[b] + ", " + row[c + 1].value.split("\n")[
+                                            b] + ", " + row[c + 2].value.split("\n")[b] + '\n'
+                                    break
+                                else:
+                                    table += row[c].value + ", "
                             else:
-                                table += cell.value + '\n'
+                                table += row[c].value + '\n'
                     m += 1
             elif parity == 1:
                 m = 0
@@ -260,15 +264,21 @@ def groupTimetable(date):
                         continue
                     table += str(num) + ") "
                     num += 1
-                    for cell in row:
-                        if cell.value is None or cell.value.upper() == cell.value.lower():
+                    for c in range(len(row)):
+                        if row[c].value is None or row[c].value.upper() == row[c].value.lower():
                             table += '-\n'
                             break
                         else:
-                            if row[-1] != cell:
-                                table += cell.value + ", "
+                            if row[-1] != row[c]:
+                                if "\n" in row[c].value and c == 0:
+                                    for b in range(len(row[c].value.split("\n"))):
+                                        table += row[c].value.split("\n")[b] + ", " + row[c + 1].value.split("\n")[
+                                            b] + ", " + row[c + 2].value.split("\n")[b] + '\n'
+                                    break
+                                else:
+                                    table += row[c].value + ", "
                             else:
-                                table += cell.value + '\n'
+                                table += row[c].value + '\n'
                     m += 1
     if table == "":
         group = ""
@@ -378,7 +388,7 @@ for event in longpoll.listen():
                 vk_session.method('messages.send',
                                   {'user_id': id, 'message': "Я запомнил, что вы из группы " + group, 'random_id': 0})
                 course = setCourse(group)
-                sheet = allSheet[course-1]
+                sheet = allSheet[course - 1]
             elif message == "бот":
                 last_message = ""
                 if group != "":
@@ -565,7 +575,7 @@ for event in longpoll.listen():
                 last_message = ""
                 group = message[message.rfind(" ") + 1:].upper()
                 course = setCourse(group)
-                sheet = allSheet[course-1]
+                sheet = allSheet[course - 1]
                 if message[message.find(" ") + 1:message.rfind(" ")] == "воскресенье":
                     vk_session.method('messages.send',
                                       {'user_id': id, 'message': "По воскресеньям не учимся :)",
@@ -614,28 +624,26 @@ for event in longpoll.listen():
                 vk_session.method('messages.send', {'user_id': id, 'message': "Показать расписание группы " + group,
                                                     'keyboard': keyboard.get_keyboard(), 'random_id': 0})
             elif message == "погода":
-                last_message = ""
                 vk_session.method('messages.send', {'user_id': id, 'message': "Показать погоду в Москве",
                                                     'keyboard': weatherKeyboard.get_keyboard(), 'random_id': 0})
-            elif message == "сейчас":
+                last_message = "погода"
+            elif last_message == "погода" and message == "сейчас":
                 last_message = ""
-                weather_api = requests.get(
-                    "http://api.openweathermap.org/data/2.5/weather?q=moscow&appid=cedff4064e83e3f289965131db177a37&units=metric&lang=ru")
-                weather = weather_api.json()
                 image = requests.get(
-                    "http://openweathermap.org/img/wn/" + weather['weather'][0]['icon'] + "@2x.png",
+                    "http://openweathermap.org/img/wn/" + weather1['weather'][0]['icon'] + "@2x.png",
                     stream=True)
                 attachments = []
                 photo = upload.photo_messages(photos=image.raw)[0]
                 attachments.append("photo{}_{}".format(photo["owner_id"], photo["id"]))
-                info_weather = str.capitalize(weather['weather'][0]['description']) + ", температура: " + str(
-                    round(int(weather['main']['temp_min']))) + " - " + str(
-                    round(int(weather['main']['temp_max']))) + " °C\nДавление: " + \
-                               str(round(int(weather['main']['pressure']) / 1.33322)) + " мм рт.ст., влажность: " + str(
-                    weather['main'][
-                        'humidity']) + "%\nВетер: " + typeWind(float(weather['wind']['speed'])) + ", " + \
-                               str(weather['wind'][
-                                       'speed']) + " м/c, " + wayWind(float(weather['wind']['deg']))
+                info_weather = str.capitalize(weather1['weather'][0]['description']) + ", температура: " + str(
+                    round(int(weather1['main']['temp_min']))) + " - " + str(
+                    round(int(weather1['main']['temp_max']))) + " °C\nДавление: " + \
+                               str(round(
+                                   int(weather1['main']['pressure']) / 1.33322)) + " мм рт.ст., влажность: " + str(
+                    weather1['main'][
+                        'humidity']) + "%\nВетер: " + typeWind(float(weather1['wind']['speed'])) + ", " + \
+                               str(weather1['wind'][
+                                       'speed']) + " м/c, " + wayWind(float(weather1['wind']['deg']))
                 vk.messages.send(
                     message="Погода в Москве:\n",
                     random_id=0,
@@ -643,49 +651,46 @@ for event in longpoll.listen():
                     attachment=','.join(attachments)
                 )
                 vk_session.method('messages.send', {'user_id': id, 'message': info_weather, 'random_id': 0})
-            elif message == "завтра" or message == "сегодня":
+            elif last_message == "погода" and (message == "завтра" or message == "сегодня"):
                 last_message = ""
-                weather_api = requests.get(
-                    "http://api.openweathermap.org/data/2.5/forecast?lat=55.7522&lon=37.6156&appid=cedff4064e83e3f289965131db177a37&units=metric&lang=ru")
-                weather = weather_api.json()
                 info_weather = ""
                 four_kind_day = ["УТРО", "ДЕНЬ", "ВЕЧЕР", "НОЧЬ"]
                 time_moments = ["06:00:00", "12:00:00", "18:00:00", "00:00:00"]
                 temp = "|| "
                 num_pictures = 0
-                for i in range(len(weather["list"])):
-                    if (message == "завтра" and weather["list"][i]["dt_txt"] == (
+                for i in range(len(weather2["list"])):
+                    if (message == "завтра" and weather2["list"][i]["dt_txt"] == (
                             datetime.date.today() + datetime.timedelta(days=1)).strftime("%Y-%m-%d") + " 06:00:00") or (
-                            message == "сегодня" and weather["list"][i]["dt_txt"][
+                            message == "сегодня" and weather2["list"][i]["dt_txt"][
                                                      :10] == datetime.date.today().strftime("%Y-%m-%d") and int(
-                        weather["list"][i]["dt_txt"][11:13]) % 6 == 0 and int(
-                        weather["list"][i]["dt_txt"][11:13]) != 0) or (
-                            message == "сегодня" and weather["list"][i]["dt_txt"] == (
+                        weather2["list"][i]["dt_txt"][11:13]) % 6 == 0 and int(
+                        weather2["list"][i]["dt_txt"][11:13]) != 0) or (
+                            message == "сегодня" and weather2["list"][i]["dt_txt"] == (
                             datetime.date.today() + datetime.timedelta(days=1)).strftime("%Y-%m-%d") + " 00:00:00"):
                         for k in range(4):
-                            if weather["list"][i]["dt_txt"][11:] != time_moments[k]:
+                            if weather2["list"][i]["dt_txt"][11:] != time_moments[k]:
                                 continue
-                            if message == "сегодня" and weather["list"][i]["dt_txt"][:10] == (
+                            if message == "сегодня" and weather2["list"][i]["dt_txt"][:10] == (
                                     datetime.date.today() + datetime.timedelta(days=1)).strftime("%Y-%m-%d") and \
-                                    weather["list"][i]["dt_txt"][11:] != "00:00:00":
+                                    weather2["list"][i]["dt_txt"][11:] != "00:00:00":
                                 break
                             info_weather += four_kind_day[k] + "\n" + str.capitalize(
-                                weather["list"][i]['weather'][0]['description']) + ", температура: " + str(
-                                math.floor(float(weather["list"][i]['main']['temp_min']))) + " - " + str(
-                                math.ceil(float(weather["list"][i]['main']['temp_max']))) + " °C\nДавление: " + \
+                                weather2["list"][i]['weather'][0]['description']) + ", температура: " + str(
+                                math.floor(float(weather2["list"][i]['main']['temp_min']))) + " - " + str(
+                                math.ceil(float(weather2["list"][i]['main']['temp_max']))) + " °C\nДавление: " + \
                                             str(round(int(
-                                                weather["list"][i]['main'][
+                                                weather2["list"][i]['main'][
                                                     'pressure']) / 1.33322)) + " мм рт.ст., влажность: " + str(
-                                weather["list"][i]['main'][
+                                weather2["list"][i]['main'][
                                     'humidity']) + "%\nВетер: " + typeWind(
-                                float(weather["list"][i]['wind']['speed'])) + ", " + \
-                                            str(weather["list"][i]['wind'][
+                                float(weather2["list"][i]['wind']['speed'])) + ", " + \
+                                            str(weather2["list"][i]['wind'][
                                                     'speed']) + " м/c, " + wayWind(
-                                float(weather["list"][i]['wind']['deg']))
+                                float(weather2["list"][i]['wind']['deg']))
                             info_weather += "\n\n"
-                            temp += str(round(float(weather["list"][i]['main']['temp']))) + "°C || "
+                            temp += str(round(float(weather2["list"][i]['main']['temp']))) + "°C || "
                             image = requests.get(
-                                "http://openweathermap.org/img/wn/" + weather["list"][i]['weather'][0][
+                                "http://openweathermap.org/img/wn/" + weather2["list"][i]['weather'][0][
                                     'icon'] + "@2x.png", stream=True)
                             if message == "сегодня":
                                 with open("file" + str(k + 1) + "+.png", "wb") as f:
@@ -745,41 +750,38 @@ for event in longpoll.listen():
                     )
                 vk_session.method('messages.send', {'peer_id': id, 'message': temp, 'random_id': 0})
                 vk_session.method('messages.send', {'peer_id': id, 'message': info_weather, 'random_id': 0})
-            elif message == "на 5 дней":
+            elif last_message == "погода" and message == "на 5 дней":
                 last_message = ""
-                weather_api = requests.get(
-                    "http://api.openweathermap.org/data/2.5/forecast?lat=55.7522&lon=37.6156&appid=cedff4064e83e3f289965131db177a37&units=metric&lang=ru")
-                weather = weather_api.json()
                 day_weather = "| "
                 night_weather = "| "
                 img = Image.new('RGBA', (500, 100))
                 t = 0
                 m = 0
                 flag = False
-                for i in range(len(weather["list"])):
-                    if weather["list"][i]["dt_txt"][:10] == datetime.date.today().strftime("%Y-%m-%d") and int(
-                            weather["list"][i]["dt_txt"][11:13]) > 15 and t < 5 and not flag:
+                for i in range(len(weather2["list"])):
+                    if weather2["list"][i]["dt_txt"][:10] == datetime.date.today().strftime("%Y-%m-%d") and int(
+                            weather2["list"][i]["dt_txt"][11:13]) > 15 and t < 5 and not flag:
                         flag = True
                         day_weather += "✖" + " | "
                         t += 1
-                    elif weather["list"][i]["dt_txt"][11:] == "15:00:00" and t < 5:
+                    elif weather2["list"][i]["dt_txt"][11:] == "15:00:00" and t < 5:
                         flag = True
-                        temp_day = str(round(weather["list"][i]["main"]["temp"])) if len(
-                            str(round(weather["list"][i]["main"]["temp"]))) == 2 else "+" + str(
-                            round(weather["list"][i]["main"]["temp"]))
+                        temp_day = str(round(weather2["list"][i]["main"]["temp"])) if len(
+                            str(round(weather2["list"][i]["main"]["temp"]))) == 2 else "+" + str(
+                            round(weather2["list"][i]["main"]["temp"]))
                         day_weather += temp_day + "°C | "
                         t += 1
                         image = requests.get(
-                            "http://openweathermap.org/img/wn/" + weather["list"][i]['weather'][0]['icon'] + "@2x.png",
+                            "http://openweathermap.org/img/wn/" + weather2["list"][i]['weather'][0]['icon'] + "@2x.png",
                             stream=True)
                         with open("file" + str(t) + "5.png", "wb") as f:
                             f.write(image.content)
-                    elif weather["list"][i]["dt_txt"][11:] == "00:00:00" and weather["list"][i]["dt_txt"][
-                                                                             :10] != datetime.date.today().strftime(
+                    elif weather2["list"][i]["dt_txt"][11:] == "00:00:00" and weather2["list"][i]["dt_txt"][
+                                                                              :10] != datetime.date.today().strftime(
                         "%Y-%m-%d"):
-                        temp_night = str(round(weather["list"][i]["main"]["temp"])) if len(
-                            str(round(weather["list"][i]["main"]["temp"]))) == 2 else "+" + str(
-                            round(weather["list"][i]["main"]["temp"]))
+                        temp_night = str(round(weather2["list"][i]["main"]["temp"])) if len(
+                            str(round(weather2["list"][i]["main"]["temp"]))) == 2 else "+" + str(
+                            round(weather2["list"][i]["main"]["temp"]))
                         night_weather += temp_night + "°C | "
                         m += 1
                 if m == 4:
@@ -915,7 +917,8 @@ for event in longpoll.listen():
                     corona_date = corona_soup.find('div', {'class': 'border rounded mt-3 mb-3 p-3'}).find('h6', {
                         'class': 'text-muted'}).text[:-17]
                     corona_result = corona_date + "\nСлучаев: " + corona_soup.find('div',
-                                                                                   {'title': 'Короновирус Россия: Случаев'}).text + " (" + corona_soup.find(
+                                                                                   {
+                                                                                       'title': 'Короновирус Россия: Случаев'}).text + " (" + corona_soup.find(
                         'span', {
                             'class': 'font-weight-bold text-text-dark'}).text + " за сегодня)\n" + "Активных: " + corona_soup.find(
                         'div', {'title': 'Короновирус Россия: Активных'}).text + " (" + corona_soup.find('span', {
@@ -929,7 +932,8 @@ for event in longpoll.listen():
                     vk_session.method('messages.send', {'peer_id': id, 'message': corona_result, 'random_id': 0})
                 else:
                     vk_session.method('messages.send',
-                                      {'peer_id': id, 'message': "Не получается сделать запрос на сайт...", 'random_id': 0})
+                                      {'peer_id': id, 'message': "Не получается сделать запрос на сайт...",
+                                       'random_id': 0})
                     vk_session.method('messages.send', {'peer_id': id, 'sticker_id': 11748, 'random_id': 0})
             elif "корона" in message and len(message) > 7:
                 answer_site = True
@@ -952,13 +956,15 @@ for event in longpoll.listen():
                             user_site = region_corona.get(r)
                             break
                     if user_site == '':
-                        vk_session.method('messages.send', {'peer_id': id, 'message': "Регион не найден!", 'random_id': 0})
+                        vk_session.method('messages.send',
+                                          {'peer_id': id, 'message': "Регион не найден!", 'random_id': 0})
                     else:
                         reg_site = requests.get("https://coronavirusstat.ru" + user_site)
                         reg_soup = BeautifulSoup(reg_site.text, "html.parser")
                         reg_date = reg_soup.find('div', {'class': 'border rounded mt-3 mb-3 p-3'}).find('h6', {
                             'class': 'text-muted'}).text[:-17]
-                        reg_name = "Короновирус " + reg_soup.find('div', {'class': 'border rounded mt-3 mb-3 p-3'}).find(
+                        reg_name = "Короновирус " + reg_soup.find('div',
+                                                                  {'class': 'border rounded mt-3 mb-3 p-3'}).find(
                             'h1',
                             {'class': 'h2 font-weight-bold'}).text[12:]
                         reg_result = reg_date + "\nРегион: " + user_reg + "\nСлучаев: " + reg_soup.find('div', {
