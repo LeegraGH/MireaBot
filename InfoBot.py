@@ -44,7 +44,7 @@ nextWeek = (datetime.date.today() + datetime.timedelta(weeks=1) - datetime.timed
     days=datetime.date.today().weekday()))
 
 # API-ключ
-token = "58549c03604a0c74ad92e0c1eda3b02a2481ec5fb1e103222779863a1aa208540679f0c56a906f13870a9"
+token = "..."
 
 # Авторизация как сообщества
 vk_session = vk_api.VkApi(token=token)
