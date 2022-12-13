@@ -28,7 +28,7 @@ class User:
         self.teacher = ""
         self.message = ""
         self.last_message = ""
-        self.add_message=""
+        self.add_message = ""
 
 
 nameDays = ["понедельник", "вторник", "среда", "четверг", "пятница", "суббота", "воскресенье"]
@@ -44,7 +44,7 @@ nextWeek = (datetime.date.today() + datetime.timedelta(weeks=1) - datetime.timed
     days=datetime.date.today().weekday()))
 
 # API-ключ
-token = "..."
+token = "58549c03604a0c74ad92e0c1eda3b02a2481ec5fb1e103222779863a1aa208540679f0c56a906f13870a9"
 
 # Авторизация как сообщества
 vk_session = vk_api.VkApi(token=token)
@@ -219,7 +219,7 @@ weather2 = weather_api2.json()
 
 
 # Расписание группы
-def groupTimetable(date,table,group):
+def groupTimetable(date, table, group):
     dayWeek = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб']
     num_cols = sheet.max_column
     for k in range(1, num_cols):
@@ -255,9 +255,7 @@ def groupTimetable(date,table,group):
                             if row[-1] != row[c]:
                                 if "\n" in row[c].value and c == 0:
                                     for b in range(len(row[c].value.split("\n"))):
-                                        table += row[c].value.split("\n")[b] + ", " + row[c + 1].value.split("\n")[
-                                            b] + ", " + row[c + 2].value.split("\n")[b] + ", " + \
-                                                 row[c + 3].value.split("\n")[b] + '\n'
+                                        table += row[c].value.split("\n")[b] + ", " + row[c + 1].value.split("\n")[b] + ", " + row[c + 2].value.split("\n")[b] + ", " + row[c + 3].value.split("\n")[b] + '\n'
                                     break
                                 else:
                                     if row[-2] == row[c] and "\n" in row[c].value:
@@ -284,9 +282,7 @@ def groupTimetable(date,table,group):
                             if row[-1] != row[c]:
                                 if "\n" in row[c].value and c == 0:
                                     for b in range(len(row[c].value.split("\n"))):
-                                        table += row[c].value.split("\n")[b] + ", " + row[c + 1].value.split("\n")[
-                                            b] + ", " + row[c + 2].value.split("\n")[b] + ", " + \
-                                                 row[c + 3].value.split("\n")[b] + '\n'
+                                        table += row[c].value.split("\n")[b] + ", " + row[c + 1].value.split("\n")[b] + ", " + row[c + 2].value.split("\n")[b] + ", " + row[c + 3].value.split("\n")[b] + '\n'
                                     break
                                 else:
                                     if row[-2] == row[c] and "\n" in row[c].value:
@@ -317,8 +313,7 @@ def searchTeacher(teacher):
                         for v in temp_teachers:
                             if (v[:-5] == teacher or v == teacher or v[:-2] == teacher) and v not in same_teachers:
                                 same_teachers.append(v)
-                            elif "." not in v and (
-                                    v == teacher or v == teacher[:-5] or v == teacher[:-2]) and v not in same_teachers:
+                            elif "." not in v and (v == teacher or v == teacher[:-5] or v == teacher[:-2]) and v not in same_teachers:
                                 same_teachers.append(v)
     return same_teachers
 
@@ -338,11 +333,11 @@ def teacherTimetable(teacher):
                 for j in range(3, num_rows + 1):
                     if sheet.cell(row=j, column=i).value is not None:
                         if '\n' in str(sheet.cell(row=j, column=i).value):
-                            var = str(sheet.cell(row=j, column=i).value).split('\n')
+                            value = str(sheet.cell(row=j, column=i).value).split('\n')
                         else:
-                            var = str(sheet.cell(row=j, column=i).value).split(', ')
-                        for k in range(len(var)):
-                            if teacher.lower() == var[k].lower().strip().lstrip():
+                            value = str(sheet.cell(row=j, column=i).value).split(', ')
+                        for k in range(len(value)):
+                            if teacher.lower() == value[k].lower().strip().lstrip():
                                 num_day = weekday[(j - 4) // 12 + 1]
                                 num_w = j % 2
                                 num_p = ((j - 4) % 12) // 2
@@ -353,28 +348,17 @@ def teacherTimetable(teacher):
                                     try:
                                         rasp[num_w][num_day][num_p] = group
                                         if str(sheet.cell(row=j, column=i - 1).value).split('\n')[k] is not None:
-                                            rasp[num_w][num_day][num_p] = \
-                                                str(sheet.cell(row=j, column=i - 1).value).split('\n')[k] + ", " + \
-                                                rasp[num_w][num_day][num_p]
+                                            rasp[num_w][num_day][num_p] = str(sheet.cell(row=j, column=i - 1).value).split('\n')[k] + ", " + rasp[num_w][num_day][num_p]
                                         if str(sheet.cell(row=j, column=i + 1).value).split('\n')[k] is not None:
-                                            rasp[num_w][num_day][num_p] = \
-                                                str(sheet.cell(row=j, column=i + 1).value).split('\n')[k] + ", " + \
-                                                rasp[num_w][num_day][num_p]
-                                        rasp[num_w][num_day][num_p] = str(
-                                            sheet.cell(row=j, column=i - 2).value.split('\n')[k]) + ", " + \
-                                                                      rasp[num_w][num_day][num_p]
+                                            rasp[num_w][num_day][num_p] = str(sheet.cell(row=j, column=i + 1).value).split('\n')[k] + ", " + rasp[num_w][num_day][num_p]
+                                        rasp[num_w][num_day][num_p] = str(sheet.cell(row=j, column=i - 2).value.split('\n')[k]) + ", " + rasp[num_w][num_day][num_p]
                                     except IndexError:
                                         rasp[num_w][num_day][num_p] = group
                                         if str(sheet.cell(row=j, column=i - 1).value) is not None:
-                                            rasp[num_w][num_day][num_p] = str(
-                                                sheet.cell(row=j, column=i - 1).value) + ", " + rasp[num_w][num_day][
-                                                                              num_p]
+                                            rasp[num_w][num_day][num_p] = str(sheet.cell(row=j, column=i - 1).value) + ", " + rasp[num_w][num_day][num_p]
                                         if str(sheet.cell(row=j, column=i + 1).value) is not None:
-                                            rasp[num_w][num_day][num_p] = str(
-                                                sheet.cell(row=j, column=i + 1).value) + ", " + rasp[num_w][num_day][
-                                                                              num_p]
-                                        rasp[num_w][num_day][num_p] = str(
-                                            sheet.cell(row=j, column=i - 2).value) + ", " + rasp[num_w][num_day][num_p]
+                                            rasp[num_w][num_day][num_p] = str(sheet.cell(row=j, column=i + 1).value) + ", " + rasp[num_w][num_day][num_p]
+                                        rasp[num_w][num_day][num_p] = str(sheet.cell(row=j, column=i - 2).value) + ", " + rasp[num_w][num_day][num_p]
     return rasp
 
 
@@ -490,7 +474,7 @@ for event in longpoll.listen():
                             vk_session.method('messages.send',
                                               {'user_id': id, 'sticker_id': 8797, 'random_id': 0})
                         else:
-                            user.table=groupTimetable(today,user.table,user.group)
+                            user.table = groupTimetable(today, user.table, user.group)
                             if user.table == "":
                                 user.group = ""
                             if user.group == "":
@@ -503,7 +487,8 @@ for event in longpoll.listen():
                                 month = changeMonth(month)
                                 user.table = "Расписание на " + datetime.date.today().strftime(
                                     "%d") + " " + month + "\n" + user.table
-                                vk_session.method('messages.send', {'user_id': id, 'message': user.table, 'random_id': 0})
+                                vk_session.method('messages.send',
+                                                  {'user_id': id, 'message': user.table, 'random_id': 0})
                                 user.table = ""
                         user.group = user.safeGroup
                     elif user.message == "на завтра" and user.last_message == "":
@@ -533,7 +518,8 @@ for event in longpoll.listen():
                                 user.table = "Расписание на " + (
                                         datetime.date.today() + datetime.timedelta(days=1)).strftime(
                                     "%d") + " " + month + "\n" + user.table
-                                vk_session.method('messages.send', {'user_id': id, 'message': user.table, 'random_id': 0})
+                                vk_session.method('messages.send',
+                                                  {'user_id': id, 'message': user.table, 'random_id': 0})
                                 user.table = ""
                             if tomorrow == "пн":
                                 weekStudy -= 1
@@ -547,9 +533,10 @@ for event in longpoll.listen():
                                 if i != 0:
                                     month = thisWeek.strftime("%B").lower()
                                     month = changeMonth(month)
-                                    user.table = user.table + "\n" + "Расписание на " + nameDays[i] + " " + thisWeek.strftime(
+                                    user.table = user.table + "\n" + "Расписание на " + nameDays[
+                                        i] + " " + thisWeek.strftime(
                                         "%d") + " " + month + "\n"
-                                user.table = groupTimetable(thisWeek.strftime("%a").lower(),user.table,user.group)
+                                user.table = groupTimetable(thisWeek.strftime("%a").lower(), user.table, user.group)
                                 if user.table == "":
                                     user.group = ""
                                 if user.group == "":
@@ -567,7 +554,8 @@ for event in longpoll.listen():
                                                    'message': "В расписании нет такой группы! Попробуйте ввести другую группу.",
                                                    'random_id': 0})
                             else:
-                                vk_session.method('messages.send', {'user_id': id, 'message': user.table, 'random_id': 0})
+                                vk_session.method('messages.send',
+                                                  {'user_id': id, 'message': user.table, 'random_id': 0})
                                 user.table = ""
                                 thisWeek = datetime.date.today() - datetime.timedelta(
                                     days=datetime.date.today().weekday())
@@ -582,10 +570,11 @@ for event in longpoll.listen():
                                 if i != 0:
                                     month = nextWeek.strftime("%B").lower()
                                     month = changeMonth(month)
-                                    user.table = user.table + "\n" + "Расписание на " + nameDays[i] + " " + nextWeek.strftime(
+                                    user.table = user.table + "\n" + "Расписание на " + nameDays[
+                                        i] + " " + nextWeek.strftime(
                                         "%d") + " " + month + "\n"
 
-                                user.table = groupTimetable(nextWeek.strftime("%a").lower(),user.table,user.group)
+                                user.table = groupTimetable(nextWeek.strftime("%a").lower(), user.table, user.group)
                                 if user.table == "":
                                     user.group = ""
                                 if user.table == "":
@@ -605,7 +594,8 @@ for event in longpoll.listen():
                                                    'message': "В расписании нет такой группы! Попробуйте ввести другую группу.",
                                                    'random_id': 0})
                             else:
-                                vk_session.method('messages.send', {'user_id': id, 'message': user.table, 'random_id': 0})
+                                vk_session.method('messages.send',
+                                                  {'user_id': id, 'message': user.table, 'random_id': 0})
                                 user.table = ""
                                 nextWeek = (datetime.date.today() + datetime.timedelta(weeks=1) - datetime.timedelta(
                                     days=datetime.date.today().weekday()))
@@ -634,7 +624,7 @@ for event in longpoll.listen():
                                 idx += 1
                             weekStudy = 1
 
-                            user.table = groupTimetable(listDayWeek[idx].strftime("%a").lower(),user.table,user.group)
+                            user.table = groupTimetable(listDayWeek[idx].strftime("%a").lower(), user.table, user.group)
                             if user.table == "":
                                 user.group = ""
                             if user.group == "":
@@ -648,18 +638,23 @@ for event in longpoll.listen():
                                     user.table = "Расписание на нечетный " + user.message[4:] + "\n" + user.table + "\n"
                                     user.table += "\nРасписание на четный " + user.message[4:] + "\n"
                                 else:
-                                    user.table = "Расписание на нечетную " + user.message[4:-1] + "у\n" + user.table + "\n"
+                                    user.table = "Расписание на нечетную " + user.message[
+                                                                             4:-1] + "у\n" + user.table + "\n"
                                     user.table += "\nРасписание на четную " + user.message[4:-1] + "у\n"
 
-                                user.table = groupTimetable((listDayWeek[idx] + datetime.timedelta(weeks=1)).strftime("%a").lower(),user.table,user.group)
+                                user.table = groupTimetable(
+                                    (listDayWeek[idx] + datetime.timedelta(weeks=1)).strftime("%a").lower(), user.table,
+                                    user.group)
                                 if user.table == "":
                                     user.group = ""
-                                vk_session.method('messages.send', {'user_id': id, 'message': user.table, 'random_id': 0})
+                                vk_session.method('messages.send',
+                                                  {'user_id': id, 'message': user.table, 'random_id': 0})
                                 user.table = ""
                             weekStudy = int(datetime.date.today().strftime("%V")) - int(
                                 datetime.date(2022, 2, 9).strftime("%V")) + 1
                     elif "бот" in user.message and user.message[
-                                              user.message.find(" ") + 1:user.message.rfind(" ")] in nameDays and re.search(
+                                                   user.message.find(" ") + 1:user.message.rfind(
+                                                       " ")] in nameDays and re.search(
                         r'[а-яА-Я]{4}-\d{2}-\d{2}', user.message) is not None:
                         user.last_message = ""
                         user.group = user.message[user.message.rfind(" ") + 1:].upper()
@@ -683,7 +678,7 @@ for event in longpoll.listen():
                                 idx += 1
                             weekStudy = 1
 
-                            user.table = groupTimetable(listDayWeek[idx].strftime("%a").lower(),user.table,user.group)
+                            user.table = groupTimetable(listDayWeek[idx].strftime("%a").lower(), user.table, user.group)
                             if user.table == "":
                                 user.group = ""
                             if user.group == "":
@@ -693,29 +688,37 @@ for event in longpoll.listen():
                                                    'random_id': 0})
                             else:
                                 weekStudy = 0
-                                if user.message[user.message.find(" ") + 1:user.message.rfind(" ")] in ["понедельник", "вторник",
-                                                                                         "четверг"]:
-                                    user.table = "Расписание на нечетный " + user.message[user.message.find(" "):user.message.rfind(
-                                        " ")] + "\n" + user.table + "\n"
+                                if user.message[user.message.find(" ") + 1:user.message.rfind(" ")] in ["понедельник",
+                                                                                                        "вторник",
+                                                                                                        "четверг"]:
+                                    user.table = "Расписание на нечетный " + user.message[
+                                                                             user.message.find(" "):user.message.rfind(
+                                                                                 " ")] + "\n" + user.table + "\n"
                                     user.table += "\nРасписание на четный " + user.message[
-                                                                         user.message.find(" "):user.message.rfind(" ")] + "\n"
+                                                                              user.message.find(" "):user.message.rfind(
+                                                                                  " ")] + "\n"
                                 else:
-                                    user.table = "Расписание на нечетную " + user.message[user.message.find(" "):user.message.rfind(
-                                        " ") - 1] + "у\n" + user.table + "\n"
+                                    user.table = "Расписание на нечетную " + user.message[
+                                                                             user.message.find(" "):user.message.rfind(
+                                                                                 " ") - 1] + "у\n" + user.table + "\n"
                                     user.table += "\nРасписание на четную " + user.message[
-                                                                         user.message.find(" "):user.message.rfind(
-                                                                             " ") - 1] + "у\n"
+                                                                              user.message.find(" "):user.message.rfind(
+                                                                                  " ") - 1] + "у\n"
 
-                                user.table = groupTimetable((listDayWeek[idx] + datetime.timedelta(weeks=1)).strftime("%a").lower(),user.table,user.group)
+                                user.table = groupTimetable(
+                                    (listDayWeek[idx] + datetime.timedelta(weeks=1)).strftime("%a").lower(), user.table,
+                                    user.group)
                                 if user.table == "":
                                     user.group = ""
-                                vk_session.method('messages.send', {'user_id': id, 'message': user.table, 'random_id': 0})
+                                vk_session.method('messages.send',
+                                                  {'user_id': id, 'message': user.table, 'random_id': 0})
                                 user.table = ""
                                 user.group = user.safeGroup
                             weekStudy = int(datetime.date.today().strftime("%V")) - int(
                                 datetime.date(2022, 2, 9).strftime("%V")) + 1
-                    elif "бот" in user.message and re.search(r'[а-яА-Я]{4}-\d{2}-\d{2}', user.message) is not None and len(
-                            user.message) == 14:
+                    elif "бот" in user.message and re.search(r'[а-яА-Я]{4}-\d{2}-\d{2}',
+                                                             user.message) is not None and len(
+                        user.message) == 14:
                         user.last_message = ""
                         user.group = user.message[user.message.find(" ") + 1:].upper()
                         course = setCourse(user.group)
@@ -764,11 +767,12 @@ for event in longpoll.listen():
                                     datetime.date.today() + datetime.timedelta(days=1)).strftime(
                                 "%Y-%m-%d") + " 06:00:00") or (
                                     user.message == "сегодня" and weather2["list"][i]["dt_txt"][
-                                                             :10] == datetime.date.today().strftime("%Y-%m-%d") and int(
-                                weather2["list"][i]["dt_txt"][11:13]) % 6 == 0 and int(
+                                                                  :10] == datetime.date.today().strftime(
+                                "%Y-%m-%d") and int(weather2["list"][i]["dt_txt"][11:13]) % 6 == 0 and int(
                                 weather2["list"][i]["dt_txt"][11:13]) != 0) or (
                                     user.message == "сегодня" and weather2["list"][i]["dt_txt"] == (
-                                    datetime.date.today() + datetime.timedelta(days=1)).strftime("%Y-%m-%d") + " 00:00:00"):
+                                    datetime.date.today() + datetime.timedelta(days=1)).strftime(
+                                "%Y-%m-%d") + " 00:00:00"):
                                 for k in range(4):
                                     if weather2["list"][i]["dt_txt"][11:] != time_moments[k]:
                                         continue
@@ -926,7 +930,8 @@ for event in longpoll.listen():
                         elif len(same_teachers) == 1:
                             user.teacher = same_teachers[0]
                             vk_session.method('messages.send',
-                                              {'user_id': id, 'message': "Показать расписание преподавателя " + user.teacher,
+                                              {'user_id': id,
+                                               'message': "Показать расписание преподавателя " + user.teacher,
                                                'keyboard': keyboard1.get_keyboard(), 'random_id': 0})
                             user.last_message = "Показать расписание преподавателя"
                         else:
@@ -942,7 +947,8 @@ for event in longpoll.listen():
                     elif user.last_message == "Выберите преподавателя":
                         user.teacher = user.add_message
                         vk_session.method('messages.send',
-                                          {'user_id': id, 'message': "Показать расписание преподавателя " + user.teacher,
+                                          {'user_id': id,
+                                           'message': "Показать расписание преподавателя " + user.teacher,
                                            'keyboard': keyboard1.get_keyboard(), 'random_id': 0})
                         user.last_message = "Показать расписание преподавателя"
                     elif user.last_message == "Показать расписание преподавателя" and user.message == "на сегодня":
@@ -961,7 +967,7 @@ for event in longpoll.listen():
                                 '%d ') + month + '\n'
                             for k in range(6):
                                 user.teacher_table += str(k + 1) + ") " + \
-                                                 ras[(numWeek(d) + 1) % 2][weekday[int(d.isoweekday())]][k] + '\n'
+                                                      ras[(numWeek(d) + 1) % 2][weekday[int(d.isoweekday())]][k] + '\n'
                             vk_session.method('messages.send',
                                               {'user_id': id, 'message': user.teacher_table, 'random_id': 0})
                         user.teacher_table = ""
@@ -982,8 +988,8 @@ for event in longpoll.listen():
                                 '%d ') + month + '\n'
                             for k in range(6):
                                 user.teacher_table += str(k + 1) + ") " + \
-                                                 ras[(numWeek(d) + 1) % 2][weekday[int(d.isoweekday())]][
-                                                     k] + '\n'
+                                                      ras[(numWeek(d) + 1) % 2][weekday[int(d.isoweekday())]][
+                                                          k] + '\n'
                             vk_session.method('messages.send',
                                               {'user_id': id, 'message': user.teacher_table, 'random_id': 0})
                         user.teacher_table = ""
@@ -998,8 +1004,10 @@ for event in longpoll.listen():
                             user.teacher_table += "\n" + "Расписание на " + weekday[i] + " " + (
                                     thisWeek + datetime.timedelta(days=i - 1)).strftime("%d") + " " + month + "\n"
                             for j in range(6):
-                                user.teacher_table += str(j + 1) + ") " + ras[(numWeek(d) + 1) % 2][weekday[i]][j] + '\n'
-                        vk_session.method('messages.send', {'user_id': id, 'message': user.teacher_table, 'random_id': 0})
+                                user.teacher_table += str(j + 1) + ") " + ras[(numWeek(d) + 1) % 2][weekday[i]][
+                                    j] + '\n'
+                        vk_session.method('messages.send',
+                                          {'user_id': id, 'message': user.teacher_table, 'random_id': 0})
                         user.teacher_table = ""
                         user.last_message = ""
                     elif user.last_message == "Показать расписание преподавателя" and user.message == "на следующую неделю":
@@ -1012,8 +1020,10 @@ for event in longpoll.listen():
                             user.teacher_table += "\n" + "Расписание на " + weekday[i] + " " + (
                                     nextWeek + datetime.timedelta(days=i - 1)).strftime("%d") + " " + month + "\n"
                             for j in range(6):
-                                user.teacher_table += str(j + 1) + ") " + ras[(numWeek(d) + 1) % 2][weekday[i]][j] + '\n'
-                        vk_session.method('messages.send', {'user_id': id, 'message': user.teacher_table, 'random_id': 0})
+                                user.teacher_table += str(j + 1) + ") " + ras[(numWeek(d) + 1) % 2][weekday[i]][
+                                    j] + '\n'
+                        vk_session.method('messages.send',
+                                          {'user_id': id, 'message': user.teacher_table, 'random_id': 0})
                         user.teacher_table = ""
                         user.last_message = ""
                     elif user.message == "корона":
